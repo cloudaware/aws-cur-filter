@@ -41,10 +41,6 @@ public final class CostAndUsageReportParquetFilter {
 
     public static void main(final String... args) throws Exception {
         final CostAndUsageReportParquetFilter app = new CostAndUsageReportParquetFilter();
-//        final String reportName = "test-parquet";
-//        final String reportPrefix = "test-parquet/test-parquet/";
-//        final String inputBucket = "ca-cost-and-usage-reports";
-//        final String outputBucket = "uglitskih-s3client-test";
         if (args.length != 5) {
             System.out.println("usage: java -jar cur-filter-1.0-SNAPSHOT.jar \"reportName\" \"reportPrefix\" \"inputBucket\" \"outputBucket\" \"comma separated linkedAccountId\"");
         } else {
@@ -73,7 +69,7 @@ public final class CostAndUsageReportParquetFilter {
                         )
                 );
         List<String> periods = objectListing.getCommonPrefixes().stream().map(p -> p.substring(reportPrefix.length())).filter(p -> PERIOD_PATTERN.matcher(p).find()).collect(Collectors.toList());
-        System.out.println("Finded periods: ");
+        System.out.println("Founded periods: ");
         System.out.println(Joiner.on("\n").join(periods));
         //process periods
         for (final String period : periods) {
@@ -127,7 +123,6 @@ public final class CostAndUsageReportParquetFilter {
                     new ByteArrayInputStream(OBJECT_MAPPER.writeValueAsBytes(inputManifest)),
                     null
             );
-//            System.out.println(newReportKeys.stream().collect(Collectors.joining("\n")));
         }
 
     }
