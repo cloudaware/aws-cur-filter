@@ -1,6 +1,8 @@
+# aws-cur-filter
+
 Usage:
 ```
-java -jar cur-filter/cur-filter-1.0-SNAPSHOT.jar "${REPORT_NAME}" "${REPORT_PREFIX}" "${INPUT_BUCKET}" "${OUTPUT_BUCKET}"  "${LINKED_ACCOUNT_IDS}"
+java -jar aws-cur-filter/aws-cur-filter-1.0-SNAPSHOT.jar "${REPORT_NAME}" "${REPORT_PREFIX}" "${INPUT_BUCKET}" "${OUTPUT_BUCKET}"  "${LINKED_ACCOUNT_IDS}"
 ```
 
 Sample IAM Role Policy for EC2 Instance
@@ -42,7 +44,7 @@ Sample IAM Role Policy for EC2 Instance
 
 
 
-Sample user-data for EC2 instance, for this script folder `lib` and JAR file `cur-filter-1.0-SNAPSHOT.jar` should be placed at `s3://outputFolder/cur-filter/`
+Sample user-data for EC2 instance, for this script folder `lib` and JAR file `aws-cur-filter-1.0-SNAPSHOT.jar` should be placed at `s3://outputFolder/aws-cur-filter/`
 ```
 #! /bin/bash
 INPUT_BUCKET="inputBucket"
@@ -53,9 +55,9 @@ LINKED_ACCOUNT_IDS="0000000000,11111111111"
 
 sudo yum install -y java-1.8.0-openjdk
 
-aws s3 sync s3://${OUTPUT_BUCKET}/cur-filter cur-filter
+aws s3 sync s3://${OUTPUT_BUCKET}/aws-cur-filter aws-cur-filter
 
-java -jar cur-filter/cur-filter-1.0-SNAPSHOT.jar "${REPORT_NAME}" "${REPORT_PREFIX}" "${INPUT_BUCKET}" "${OUTPUT_BUCKET}"  "${LINKED_ACCOUNT_IDS}"
+java -jar aws-cur-filter/aws-cur-filter-1.0-SNAPSHOT.jar "${REPORT_NAME}" "${REPORT_PREFIX}" "${INPUT_BUCKET}" "${OUTPUT_BUCKET}"  "${LINKED_ACCOUNT_IDS}"
 
 #if needed add EC2 instance self terminating, for example use Shutdown behavior - Terminaton
 shutdown -h now
