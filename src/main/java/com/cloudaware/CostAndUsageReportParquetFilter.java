@@ -41,21 +41,35 @@ public final class CostAndUsageReportParquetFilter {
 
     public static void main(final String... args) throws Exception {
         final CostAndUsageReportParquetFilter app = new CostAndUsageReportParquetFilter();
-        if (args.length != 5) {
-            System.out.println("usage: java -jar cur-filter-1.0-SNAPSHOT.jar \"reportName\" \"reportPrefix\" \"inputBucket\" \"outputBucket\" \"comma separated linkedAccountId\"");
+        if (args.length < 5) {
+            System.out.println("usage: java -jar cur-filter-1.0-SNAPSHOT.jar \"reportName\" \"reportPrefix\" \"inputBucket\" \"outputBucket\" \"comma separated linkedAccountId\" [\"periodPrefix\"]");
         } else {
             System.out.println("reportName:" + args[0]);
             System.out.println("reportPrefix:" + args[1]);
             System.out.println("inputBucket:" + args[2]);
             System.out.println("outputBucket:" + args[3]);
             System.out.println("linkedAccountId:" + args[4]);
-            app.run(args[0], args[1], args[2], args[3], args[4]);
+            if (args.length == 5) {
+                System.out.println("periodPrefix: null");
+                app.run(args[0], args[1], args[2], args[3], args[4], null);
+            } else {
+                System.out.println("periodPrefix: " + args[5]);
+                app.run(args[0], args[1], args[2], args[3], args[4], args[5]);
+            }
+
         }
 
         System.exit(0);
     }
 
-    public void run(final String reportName, final String reportPrefix, final String inputBucket, final String outputBucket, final String linkedAccountIdsString) throws Exception {
+    public void run(
+            final String reportName,
+            final String reportPrefix,
+            final String inputBucket,
+            final String outputBucket,
+            final String linkedAccountIdsString,
+            final String periodPrefix
+    ) throws Exception {
 
         //get periods
         final ObjectListing objectListing = amazonS3Client
@@ -71,6 +85,11 @@ public final class CostAndUsageReportParquetFilter {
         List<String> periods = objectListing.getCommonPrefixes().stream().map(p -> p.substring(reportPrefix.length())).filter(p -> PERIOD_PATTERN.matcher(p).find()).collect(Collectors.toList());
         System.out.println("Founded periods: ");
         System.out.println(Joiner.on("\n").join(periods));
+        if (periodPrefix != null) {
+            periods = periods.stream().filter(p -> p.startsWith(periodPrefix)).collect(Collectors.toList());
+            System.out.println("Filtered periods: ");
+            System.out.println(Joiner.on("\n").join(periods));
+        }
         //process periods
         for (final String period : periods) {
             //read manifest
