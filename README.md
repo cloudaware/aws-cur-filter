@@ -1,8 +1,12 @@
 # aws-cur-filter
 
+NOTE: Dependencies contains `parquet-hadoop:1.10.1-ca-SNAPSHOT` this version from `parquet-mr` fork https://github.com/cloudaware/parquet-mr/tree/apache-parquet-1.10.1-ca
+
+NOTE: at 1.0.2 version build process was change to fat jar, so before an update clean `s3://outputFolder/aws-cur-filter/` 
+
 Usage:
 ```
-java -jar aws-cur-filter/aws-cur-filter-1.0.1.jar "${REPORT_NAME}" "${REPORT_PREFIX}" "${INPUT_BUCKET}" "${OUTPUT_BUCKET}"  "${LINKED_ACCOUNT_IDS}" ["periodPrefix"]
+java -jar aws-cur-filter/aws-cur-filter-1.0.2-jar-with-dependencies.jar "${REPORT_NAME}" "${REPORT_PREFIX}" "${INPUT_BUCKET}" "${OUTPUT_BUCKET}"  "${LINKED_ACCOUNT_IDS}" ["periodPrefix"]
 ```
 
 Sample IAM Role Policy for EC2 Instance
@@ -44,7 +48,7 @@ Sample IAM Role Policy for EC2 Instance
 
 
 
-Sample user-data for EC2 instance, for this script folder `lib` and JAR file `aws-cur-filter-1.0.1.jar` should be placed at `s3://outputFolder/aws-cur-filter/`
+Sample user-data for EC2 instance, for this script folder JAR file `aws-cur-filter-1.0.1-jar-with-dependencies.jar` should be placed at `s3://outputFolder/aws-cur-filter/`
 ```
 #! /bin/bash
 INPUT_BUCKET="inputBucket"
@@ -57,7 +61,7 @@ sudo yum install -y java-1.8.0-openjdk
 
 aws s3 sync s3://${OUTPUT_BUCKET}/aws-cur-filter aws-cur-filter
 
-java -jar aws-cur-filter/aws-cur-filter-1.0.1.jar "${REPORT_NAME}" "${REPORT_PREFIX}" "${INPUT_BUCKET}" "${OUTPUT_BUCKET}"  "${LINKED_ACCOUNT_IDS}"
+java -jar aws-cur-filter/aws-cur-filter-1.0.2-jar-with-dependencies.jar "${REPORT_NAME}" "${REPORT_PREFIX}" "${INPUT_BUCKET}" "${OUTPUT_BUCKET}"  "${LINKED_ACCOUNT_IDS}"
 
 #if needed add EC2 instance self terminating, for example use Shutdown behavior - Terminaton
 shutdown -h now

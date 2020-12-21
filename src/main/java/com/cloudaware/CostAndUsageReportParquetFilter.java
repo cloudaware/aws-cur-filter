@@ -155,6 +155,10 @@ public final class CostAndUsageReportParquetFilter {
                 .config("spark.sql.parquet.binaryAsString", "true")
                 .config("spark.sql.parquet.enableVectorizedReader", "false")
                 .config("spark.sql.parquet.outputTimestampType", "TIMESTAMP_MILLIS")
+                .config("spark.sql.hive.convertMetastoreParquet", "false")
+                .config("parquet.column.index.access", "true")
+                .config("parquet.strict.typing", "false")
+                .config("spark.sql.caseSensitive", "true")
                 .getOrCreate();
         //read parquet
         final Dataset<Row> rowDataset = spark.read().load(reportKeys.stream().map(parquetFile -> "s3a://" + inputBucket + "/" + parquetFile).collect(Collectors.toList()).toArray(new String[]{}));
