@@ -5,9 +5,11 @@ import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.clearspring.analytics.util.Lists;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Sets;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SaveMode;
@@ -35,7 +37,7 @@ public final class CostAndUsageReportParquetFilter {
     private static final int HTTP_NOT_FOUND = 404;
     private final AmazonS3Client amazonS3Client = new AmazonS3Client();
 
-    {
+    static {
         OBJECT_MAPPER.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
     }
 
@@ -107,8 +109,10 @@ public final class CostAndUsageReportParquetFilter {
             if (outputManifestObject != null) {
                 outputManifest = OBJECT_MAPPER.readTree(outputManifestObject.getObjectContent());
             }
-            if (outputManifest != null && Objects.equals(outputManifest.get("assemblyId").asText(), inputManifest.get("assemblyId").asText())) {
-                System.out.println("Period: (" + period + ") has same assemblyId: (" + inputManifest.get("assemblyId").asText() + ")");
+            final String inputAssemblyId = inputManifest.get("assemblyId").asText();
+            final String outputAssemblyId = DigestUtils.md5Hex(inputAssemblyId + linkedAccountIdsString);
+            if (outputManifest != null && Objects.equals(outputManifest.get("assemblyId").asText(), outputAssemblyId)) {
+                System.out.println("Period: (" + period + ") has same assemblyId: (" + outputAssemblyId+ ")");
                 //skip if assembly Id of this period at output bucket and input bucket equals
                 continue;
             }
@@ -135,6 +139,9 @@ public final class CostAndUsageReportParquetFilter {
                             Arrays.stream(linkedAccountIdsString.split(",")).map(String::trim).collect(Collectors.toSet())
                     )
             );
+            ((ObjectNode) inputManifest).put("assemblyId", outputAssemblyId);
+            ((ObjectNode) inputManifest).put("caOriginalAssemblyId", inputAssemblyId);
+            ((ObjectNode) inputManifest).put("caLinkedAccountIds", linkedAccountIdsString);
             ((ObjectNode) inputManifest).putArray("reportKeys").addAll(newReportKeys.stream().map(TextNode::valueOf).collect(Collectors.toList()));
             amazonS3Client.putObject(
                     outputBucket,
@@ -185,7 +192,7 @@ public final class CostAndUsageReportParquetFilter {
                     );
             nextMarker = objectListing.getNextMarker();
             convertedKeys.addAll(
-                    objectListing.getObjectSummaries().stream().map(o -> o.getKey()).filter(k -> !k.endsWith("_SUCCESS")).collect(Collectors.toSet())
+                    objectListing.getObjectSummaries().stream().map(S3ObjectSummary::getKey).filter(k -> !k.endsWith("_SUCCESS")).collect(Collectors.toSet())
             );
         } while (nextMarker != null);
         return convertedKeys;

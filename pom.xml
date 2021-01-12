@@ -6,7 +6,7 @@
 
     <groupId>org.example</groupId>
     <artifactId>aws-cur-filter</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
 
     <properties>
         <spark.version>2.4.5</spark.version>
@@ -96,6 +96,7 @@
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
+                    <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
             <plugin>
