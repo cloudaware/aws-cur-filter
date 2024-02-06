@@ -6,12 +6,16 @@
 
     <groupId>org.example</groupId>
     <artifactId>aws-cur-filter</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.5</version>
 
     <properties>
-        <spark.version>3.1.0</spark.version>
-        <hadoop.version>3.2.0</hadoop.version>
-        <jackson.version>2.10.0</jackson.version>
+        <spark.version>3.5.0</spark.version>
+        <hadoop.version>3.3.4</hadoop.version>
+        <parquet.version>1.13.1-ca-SNAPSHOT</parquet.version>
+        <jackson.version>2.15.2</jackson.version>
+        <log4j.version>2.22.1</log4j.version>
+        <slf4j.version>2.0.9</slf4j.version>
+        <version.java>1.8</version.java>
     </properties>
 
     <dependencies>
@@ -19,6 +23,12 @@
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_2.12</artifactId>
             <version>${spark.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.apache.spark/spark-sql -->
         <dependency>
@@ -39,31 +49,36 @@
         <dependency>
             <groupId>org.apache.parquet</groupId>
             <artifactId>parquet-hadoop</artifactId>
-            <version>1.10.1-ca-SNAPSHOT</version>
+            <version>${parquet.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.parquet</groupId>
             <artifactId>parquet-column</artifactId>
-            <version>1.10.1-ca-SNAPSHOT</version>
+            <version>${parquet.version}</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-aws -->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-aws</artifactId>
             <version>${hadoop.version}</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
-            <version>${jackson.version}</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j2-impl</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <!-- test -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
@@ -83,11 +98,201 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.google.code.findbugs</groupId>
+                <artifactId>jsr305</artifactId>
+                <version>3.0.2</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-compress</artifactId>
+                <version>1.23.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.xerial.snappy</groupId>
+                <artifactId>snappy-java</artifactId>
+                <version>1.1.10.3</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-slf4j2-impl</artifactId>
+                <version>${log4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-api</artifactId>
+                <version>${log4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+                <version>${log4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-1.2-api</artifactId>
+                <version>${log4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>jcl-over-slf4j</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>jul-to-slf4j</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-codec</groupId>
+                <artifactId>commons-codec</artifactId>
+                <version>1.16.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.scala-lang</groupId>
+                <artifactId>scala-library</artifactId>
+                <version>2.12.18</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.zookeeper</groupId>
+                <artifactId>zookeeper</artifactId>
+                <version>3.6.3</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.luben</groupId>
+                <artifactId>zstd-jni</artifactId>
+                <version>1.5.5-4</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.yetus</groupId>
+                <artifactId>audience-annotations</artifactId>
+                <version>0.13.0</version>
+            </dependency>
+            <dependency>
+                <groupId>io.airlift</groupId>
+                <artifactId>aircompressor</artifactId>
+                <version>0.25</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.4.1</version>
+                <configuration>
+                    <rules>
+                        <dependencyConvergence>
+                            <uniqueVersions>false</uniqueVersions>
+                        </dependencyConvergence>
+                        <requireUpperBoundDeps>
+                            <excludes>
+                            </excludes>
+                        </requireUpperBoundDeps>
+                        <bannedDependencies>
+                            <excludes>
+                            </excludes>
+                        </bannedDependencies>
+                        <requireJavaVersion>
+                            <version>${version.java}</version>
+                        </requireJavaVersion>
+                    </rules>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>enforce</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <phase>validate</phase>
+                    </execution>
+                    <!--
+                      Checks the dependencies and fails if the groupId:artifactId combination exists in the
+                      list of direct or transitive dependencies.
+                    -->
+                    <execution>
+                        <id>enforce-ban-circular-dependencies</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <banCircularDependencies/>
+                            </rules>
+                            <fail>true</fail>
+                        </configuration>
+                    </execution>
+                    <!--
+                      Checks the dependencies and fails if any class is present in more than one
+                      dependency.
+                    -->
+                    <execution>
+                        <id>enforce-ban-duplicate-classes</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <bannedDependencies>
+                                    <excludes>
+                                    </excludes>
+                                </bannedDependencies>
+                                <banDuplicateClasses>
+                                    <ignoreClasses>
+                                    </ignoreClasses>
+                                    <scopes>
+                                        <scope>compile</scope>
+                                        <scope>runtime</scope>
+                                        <scope>system</scope>
+                                        <scope>import</scope>
+                                        <!-- Ignore test scope -->
+                                        <!--<scope>provided</scope>-->
+                                        <!--<scope>test</scope>-->
+                                    </scopes>
+                                    <findAllDuplicates>true</findAllDuplicates>
+                                    <ignoreWhenIdentical>true</ignoreWhenIdentical>
+                                </banDuplicateClasses>
+                            </rules>
+                            <fail>true</fail>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>extra-enforcer-rules</artifactId>
+                        <version>1.7.0</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.12.1</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
@@ -96,27 +301,44 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.1</version>
                 <configuration>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                    <archive>
-                        <manifest>
+                    <transformers>
+                        <transformer implementation="org.apache.logging.log4j.maven.plugins.shade.transformer.Log4j2PluginCacheFileTransformer"/>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                             <mainClass>com.cloudaware.CostAndUsageReportParquetFilter</mainClass>
-                        </manifest>
-                    </archive>
-
+                        </transformer>
+                    </transformers>
+                    <shadedArtifactAttached>true</shadedArtifactAttached>
+                    <shadedClassifierName>jar-with-dependencies</shadedClassifierName>
+                    <filters>
+                        <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/*.SF</exclude>
+                                <exclude>META-INF/*.DSA</exclude>
+                                <exclude>META-INF/*.RSA</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
                 </configuration>
                 <executions>
                     <execution>
-                        <id>make-assembly</id>
                         <phase>package</phase>
                         <goals>
-                            <goal>single</goal>
+                            <goal>shade</goal>
                         </goals>
                     </execution>
                 </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.logging.log4j</groupId>
+                        <artifactId>log4j-transform-maven-shade-plugin-extensions</artifactId>
+                        <version>0.1.0</version>
+                    </dependency>
+                </dependencies>
             </plugin>
         </plugins>
     </build>

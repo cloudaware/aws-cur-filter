@@ -1,21 +1,15 @@
 package com.cloudaware;
 
-import com.clearspring.analytics.util.Lists;
-import com.google.common.collect.Sets;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.parquet.hadoop.ParquetFileReader;
 import org.apache.parquet.hadoop.util.HadoopInputFile;
 import org.apache.parquet.schema.MessageType;
-import org.apache.parquet.schema.PrimitiveType;
-import org.apache.parquet.schema.Type;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.execution.datasources.parquet.ParquetToSparkSchemaConverter;
-import org.apache.spark.sql.types.Metadata;
-import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -23,8 +17,6 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.List;
-import java.util.Set;
 
 public class DeduplicateColumnNameTest {
 
@@ -44,35 +36,20 @@ public class DeduplicateColumnNameTest {
         final HadoopInputFile hadoopInputFile = HadoopInputFile.fromPath(new Path(url.getPath()), configuration);
         final ParquetFileReader reader = ParquetFileReader.open(hadoopInputFile);
         final MessageType schema = reader.getFooter().getFileMetaData().getSchema();
-        final List<Type> fields = schema.getFields();
-        //check schema duplicate
-        final Set<String> fieldNames = Sets.newHashSet();
-        final List<StructField> newFields = Lists.newArrayList();
-        for (final Type field : fields) {
-            final PrimitiveType primitiveField = (PrimitiveType) field;
-            String newName = primitiveField.getName();
-            if (fieldNames.contains(newName)) {
-                continue;
-            }
-            ParquetToSparkSchemaConverter parquetToSparkSchemaConverter = new ParquetToSparkSchemaConverter(
-                    true,
-                    true
-            );
 
-            final StructField structField = new StructField(
-                    newName,
-                    parquetToSparkSchemaConverter.convertField(primitiveField),
-                    true,
-                    Metadata.empty()
-            );
-            newFields.add(structField);
-            fieldNames.add(newName);
-        }
+        final ParquetToSparkSchemaConverter parquetToSparkSchemaConverter = new ParquetToSparkSchemaConverter(
+                true,
+                true,
+                false,
+                true,
+                true
+        );
 
-        final StructType sparkSchema = new StructType(newFields.toArray(new StructField[0]));
+        final StructType sparkSchema = parquetToSparkSchemaConverter.convert(schema);
+        final int coreCount = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
         final SparkSession spark = SparkSession
                 .builder()
-                .master("local")
+                .master("local[" + coreCount + "]")
                 .config("spark.sql.hive.convertMetastoreParquet", "false")
                 .config("parquet.column.index.access", "true")
                 .config("parquet.strict.typing", "false")
